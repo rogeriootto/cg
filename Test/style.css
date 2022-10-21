@@ -1,0 +1,47 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+canvas {
+    width: 85%;
+    height: 85%;
+    display: block;
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+
+p {
+    margin-right: 10px;
+}
+
+#motherDiv {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    background-image: url("https://cdn.discordapp.com/attachments/704187725309542481/1028745454109859891/Sem-Titulo-1.png");
+    background-repeat: round;
+}
+
+#gui {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#information {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+#data{
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+}
+
+#dataMouse{
+    margin-bottom: 10px;
+}

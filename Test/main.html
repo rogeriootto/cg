@@ -1,0 +1,70 @@
+<html>
+    <link rel="stylesheet" href="style.css">
+    <body>
+        <div id="motherDiv">
+            <canvas id="canvas"></canvas>
+            <!-- <div id="gui"></div> <-->
+            <div id="information">
+                <div id="dataMouse">
+                    <div id="data">
+                        <p>
+                            Mouse Position on Canvas
+                        </p>
+                        <p>
+                            X: <span id="x-value-move"></span>
+                        </p>
+                        <p>
+                            Y: <span id="y-value-move"></span>
+                        </p>
+                    </div>
+                
+                    <div id="data">
+                        <p>
+                            Last Mouse Click Position on Canvas
+                        </p>
+                        <p>
+                            X: <span id="x-value-click"></span>
+                        </p>
+                        <p>
+                            Y: <span id="y-value-click"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="dataMouse">
+                    <div id="data">
+                        <p>
+                            Mouse Position on Canvas Normalized
+                        </p>
+                        <p>
+                            X: <span id="x-value-move-normalized"></span>
+                        </p>
+                        <p>
+                            Y: <span id="y-value-move-normalized"></span>
+                        </p>
+                    </div>
+                    <div id="data">
+                        <p>
+                            Last Mouse Click Position on Canvas Normalized
+                        </p>
+                        <p>
+                            X: <span id="x-value-click-normalized"></span>
+                        </p>
+                        <p>
+                            Y: <span id="y-value-click-normalized"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="twgl.js"></script>
+        <script src="m4.js"></script>
+        <!-- ><script src="https://webgl2fundamentals.org/webgl/resources/flattened-primitives.js"></script> </ -->
+
+        <script type="text/javascript" src="dat.gui-0.7.9/build/dat.gui.js"></script>
+        <script src ="objectFormat.js"></script>
+        <script src="ui.js"></script>
+        <script src="test.js"></script>  
+        <script src="mousePosition.js"></script>
+    </body>
+</html>
