@@ -105,6 +105,7 @@ var cubeVAO;
 var cubeBufferInfo;
 var pyramidBufferInfo;
 var pyraVAO;
+
 var objectsToDraw = [];
 var objects = [];
 var nodeInfosByName = {};
@@ -130,8 +131,8 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
     node.drawInfo = {
       uniforms: {
-        u_colorOffset: uiObj.color,
-        u_colorMult: [0.4, 0.1, 0.4, 1],
+        u_colorOffset: [0,0,0,1],
+        u_colorMult: [1, 1, 1, 1],
       },
       programInfo: programInfo,
       bufferInfo: nodeDescription.bufferInfo,
@@ -163,8 +164,9 @@ function main() {
   twgl.setAttributePrefix("a_");
   //cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 1);
 
-  pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
   cubeBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+  pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+  
 
   // setup GLSL program
   
@@ -186,8 +188,8 @@ function main() {
       name: "0",
       translation: [0, 0, 0],
       children: [],
-      vao: pyraVAO,
-      bufferInfo: pyramidBufferInfo,
+      vao: cubeVAO,
+      bufferInfo: cubeBufferInfo,
     },
     ] 
   };
@@ -214,7 +216,7 @@ function main() {
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    gl.enable(gl.CULL_FACE);
+    gl.disable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
     // Compute the projection matrix
@@ -229,7 +231,7 @@ function main() {
 
     // Make a view matrix from the camera matrix.
     var viewMatrix = m4.inverse(cameraMatrix);
-
+    
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
     nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
