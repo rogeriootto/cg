@@ -1,8 +1,11 @@
 //dat GUI
+
 var uiObj = {
    
   ['Select Object Index']: 0,
   selectedName: "",
+
+  isObjectSelected: false,
     
   translation: {
     x: 0.0,
@@ -32,6 +35,15 @@ var uiObj = {
   ['Create Cube']: function() {
     createObj("cube");
   },
+
+  ['Create amogus']: function() {
+    createObj("amongus");
+  },
+
+  ['Delete Obj']: function() {
+    deleteObj();
+  },
+
 };
 
   var uiCamera = {
@@ -52,6 +64,7 @@ var uiObj = {
   function createGUI() {
 
     gui = new dat.gui.GUI();
+
 
     const geometryFolder = gui.addFolder('Geometry');
     //geometryFolder.open();
@@ -83,7 +96,12 @@ var uiObj = {
     const createFolder = gui.addFolder('Create Object')
     createFolder.add(uiObj, 'Create Pyramid');
     createFolder.add(uiObj, 'Create Cube');
+    createFolder.add(uiObj, 'Create amogus');
+    createFolder.add(uiObj, 'Delete Obj');
     
-    const select = gui.add(uiObj, 'Select Object Index');
+    
+    gui.add(uiObj, 'Select Object Index');
+    gui.add(uiObj, 'isObjectSelected');
+
     
   }

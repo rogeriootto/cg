@@ -103,8 +103,12 @@ Node.prototype.updateWorldMatrix = function (matrix) {
 
 var cubeVAO;
 var cubeBufferInfo;
+
 var pyramidBufferInfo;
 var pyraVAO;
+
+var amongusVAO;
+var amongusBufferInfo;
 
 var objectsToDraw = [];
 var objects = [];
@@ -166,6 +170,13 @@ function main() {
 
   cubeBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
   pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+
+  //var newbuffer = amongusdata.position.map(i => i/2);
+  
+  //amongusdata.position = newbuffer;
+  //console.log(amongusdata.position );
+
+  amongusBufferInfo = twgl.createBufferInfoFromArrays(gl, amongusdata);
   
 
   // setup GLSL program
@@ -175,24 +186,27 @@ function main() {
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
   pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
 
+  amongusVAO = twgl.createVAOFromBufferInfo(gl, programInfo, amongusBufferInfo);
+
   objectsToDraw = [];
   objects = [];
   nodeInfosByName = {};
     
+  if(gui == null) {
+    createGUI();
+  }
   
   // Let's make all the nodes
   objeto = {
     name: "scene",
+    translation: [0,0,0],
+    rotation: [0,0,0],
+    scale: [0,0,0],
     draw: false,
-    children: [ {
-      name: "0",
-      translation: [0, 0, 0],
-      children: [],
-      vao: cubeVAO,
-      bufferInfo: cubeBufferInfo,
-    },
-    ] 
+    children: [] 
   };
+
+  //createObj("pyramid");
   
   scene = makeNode(objeto);
 
@@ -210,6 +224,7 @@ function main() {
     if(gui == null) {
       createGUI();
     }
+    time *= 0.001;
     
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
@@ -221,7 +236,7 @@ function main() {
 
     // Compute the projection matrix
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
+    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 2000); //FOV, aspectRatio, NearPlane, FarPlane
 
     // Compute the camera's matrix using look at.
     cameraPosition = [uiCamera.x, uiCamera.y, uiCamera.z];
@@ -234,10 +249,33 @@ function main() {
     
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-    nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
-    nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
-    nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
 
+    var adjust;
+    var speed = 100;
+    var time = time * speed;
+
+
+    adjust = degToRad(time * uiObj.rotation.x);
+    if(uiObj.isObjectSelected) {
+      
+      nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
+      //nodeInfosByName[`scene`].trs.rotation[1] = adjust; animação de girar
+      objArray[uiObj["Select Object Index"]].rotation.x = uiObj.rotation.x;
+      objArray[uiObj["Select Object Index"]].rotation.y = uiObj.rotation.y;
+      objArray[uiObj["Select Object Index"]].rotation.z = uiObj.rotation.z;
+
+      nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
+      objArray[uiObj["Select Object Index"]].translation.x = uiObj.translation.x;
+      objArray[uiObj["Select Object Index"]].translation.y = uiObj.translation.y;
+      objArray[uiObj["Select Object Index"]].translation.z = uiObj.translation.z;
+
+      nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
+      objArray[uiObj["Select Object Index"]].scale.x = uiObj.scale.x;
+      objArray[uiObj["Select Object Index"]].scale.y = uiObj.scale.y;
+      objArray[uiObj["Select Object Index"]].scale.z = uiObj.scale.z;
+
+    }
+    
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
 
@@ -252,7 +290,6 @@ function main() {
     // ------ Draw the objects --------
 
     twgl.drawObjectList(gl, objectsToDraw);
-    console.log(100);
 
     requestAnimationFrame(drawScene);
   }
