@@ -3,19 +3,28 @@
 var vs = `#version 300 es
 
 in vec4 a_position;
-in vec4 a_color;
+in vec3 a_normal;
+
+uniform vec3 u_lightWorldPosition;
 
 uniform mat4 u_matrix;
+uniform mat4 u_world;
+uniform mat4 u_worldInverseTranspose;
 
-out vec4 v_color;
+out vec3 v_normal;
+out vec3 v_surfaceToLight;
 
 void main() {
-
   // Multiply the position by the matrix.
   gl_Position = u_matrix * a_position;
 
   // Pass the color to the fragment shader.
-  v_color = a_color;
+  v_normal = mat3(u_worldInverseTranspose) * a_normal;
+
+  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+
+  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+
 }
 `;
 
@@ -24,15 +33,23 @@ var fs = `#version 300 es
 precision highp float;
 
 // Passed in from the vertex shader.
-in vec4 v_color;
 
-uniform vec4 u_colorMult;
-uniform vec4 u_colorOffset;
+in vec3 v_normal;
+in vec3 v_surfaceToLight;
+
+uniform vec4 u_color;
 
 out vec4 outColor;
 
 void main() {
-   outColor = v_color * u_colorMult + u_colorOffset;
+  vec3 normal = normalize(v_normal);
+
+  vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+
+  float light = dot(v_normal, surfaceToLightDirection);
+  outColor = u_color;
+
+  outColor.rgb *= light;
 }
 `;
 
@@ -118,6 +135,7 @@ var objeto = {};
 var countF = 0;
 var countC = 0;
 var programInfo;
+var gl;
 
 //CAMERA VARIABLES
 var cameraPosition;
@@ -135,8 +153,8 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
     node.drawInfo = {
       uniforms: {
-        u_colorOffset: [0,0,0,1],
-        u_colorMult: [1, 1, 1, 1],
+        lightWorldPositionLocation: [0,0,-1],
+        u_color: [0.2, 1, 0.2, 1],
       },
       programInfo: programInfo,
       bufferInfo: nodeDescription.bufferInfo,
@@ -158,10 +176,16 @@ function main() {
   // Get A WebGL context
   /** @type {HTMLCanvasElement} */
   var canvas = document.querySelector("#canvas");
-  var gl = canvas.getContext("webgl2");
+  gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
   }
+
+  //Calcula a normal dos objetos para inicialização:
+  arrays_cube.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
+  arrays_pyramid.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
+
+  console.log(arrays_pyramid.normal);
 
   // Tell the twgl to match position with a_position, n
   // normal with a_normal etc..
@@ -170,15 +194,8 @@ function main() {
 
   cubeBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
   pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
-
-  //var newbuffer = amongusdata.position.map(i => i/2);
-  
-  //amongusdata.position = newbuffer;
-  //console.log(amongusdata.position );
-
   amongusBufferInfo = twgl.createBufferInfoFromArrays(gl, amongusdata);
   
-
   // setup GLSL program
   
   programInfo = twgl.createProgramInfo(gl, [vs, fs]);
@@ -254,28 +271,17 @@ function main() {
     var speed = 100;
     var time = time * speed;
 
+    var fRotationRadians = degToRad(uiObj.rotation.y);
+
 
     adjust = degToRad(time * uiObj.rotation.x);
-    if(uiObj.isObjectSelected) {
-      
-      nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
-      //nodeInfosByName[`scene`].trs.rotation[1] = adjust; animação de girar
-      objArray[uiObj["Select Object Index"]].rotation.x = uiObj.rotation.x;
-      objArray[uiObj["Select Object Index"]].rotation.y = uiObj.rotation.y;
-      objArray[uiObj["Select Object Index"]].rotation.z = uiObj.rotation.z;
-
-      nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
-      objArray[uiObj["Select Object Index"]].translation.x = uiObj.translation.x;
-      objArray[uiObj["Select Object Index"]].translation.y = uiObj.translation.y;
-      objArray[uiObj["Select Object Index"]].translation.z = uiObj.translation.z;
-
-      nodeInfosByName[`${uiObj["Select Object Index"]}`].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
-      objArray[uiObj["Select Object Index"]].scale.x = uiObj.scale.x;
-      objArray[uiObj["Select Object Index"]].scale.y = uiObj.scale.y;
-      objArray[uiObj["Select Object Index"]].scale.z = uiObj.scale.z;
-
-    }
     
+    if(uiObj.isObjectSelected) {      
+      nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
+      nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
+      nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
+    }
+
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
 
@@ -285,6 +291,12 @@ function main() {
         viewProjectionMatrix,
         object.worldMatrix
       );
+      object.drawInfo.uniforms.lightWorldPositionLocation = [teste.x, teste.y, teste.z];
+      
+      object.drawInfo.uniforms.u_world = object.worldMatrix;
+
+      object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(object.worldMatrix));
+      
     });
 
     // ------ Draw the objects --------

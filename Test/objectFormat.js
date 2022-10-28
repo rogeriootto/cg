@@ -1,8 +1,8 @@
 //Cria um objeto e adiciona no array para imprimir na tela
 var objIndex = 0;
-var objArray = [];
 
 function createObj(name) {
+
   var newObj = {
     name: `${objIndex}`,
     index: objIndex,
@@ -43,8 +43,8 @@ function createObj(name) {
     }
   }
 
-  objArray.push(objData);
-  //console.log(objArray);
+  uiObj.objArray.push(newObj.name)
+  console.log(uiObj.objArray);
   
   objeto.children.push(newObj);
 
@@ -58,123 +58,86 @@ function createObj(name) {
   gui = null;
 }
 
-function deleteObj() {
-
-  objeto.children.pop();
-
-  objectsToDraw = [];
-  objects = [];
-  nodeInfosByName = {};
-
-  scene = makeNode(objeto);
-}
-
-
 var arrays_pyramid = {
     position: new Float32Array([
       1, -1, 1,
       -1, -1, 1,
       -1, -1, -1,
       1, -1, -1,
+      1, -1, 1,
+      -1, -1, 1,
       0, 1, 0,
+      -1, -1, 1,
+      -1, -1, -1,
+      0, 1, 0,
+      -1, -1, -1,
+      1, -1, -1,
+      0, 1, 0,
+      1, -1, -1,
+      1, -1, 1,
+      0, 1, 0,
+
     ]),
 
     indices: new Uint16Array([
       0, 1, 2,
-      0, 2, 3,
-      0, 3, 4,
-      0, 1, 4,
-      1, 2, 4,
-      2, 3, 4,
+      0, 2, 3, 
+      4, 5, 6,
+      7, 8, 9,
+      10, 11, 12,
+      13, 14, 15
 
-    ]),
-
-    color: new Float32Array([
-      1,0,0,1,
-      0,1,0,1,
-      0,0,1,1,
-      1,0,1,1,
-      1,1,0,1,
     ]),
   };
 
 
   var arrays_cube = {
     // vertex positions for a cube
-    position: new Float32Array([
-
-      //base
-      1, -1, 1, // -2 0 0, -2, 0 ,-2, 0, 0, -2
-      -1, -1, 1,
-      -1, -1, -1,
+    position: [
+      1, 1, -1, 
+      1, 1, 1, 
+      1, -1, 1, 
       1, -1, -1,
-
-      //lado
-      1, 1, 1,
-      1, 1, -1,
       -1, 1, 1,
       -1, 1, -1,
+      -1, -1, -1,
+      -1, -1, 1,
+      -1, 1, 1,
+      1, 1, 1,
+      1, 1, -1,
+      -1, 1, -1,
+      -1, -1, -1,
+      1, -1, -1,
+      1, -1, 1,
+      -1, -1, 1,
+      1, 1, 1,
+      -1, 1, 1,
+      -1, -1, 1,
+      1, -1, 1,
+      -1, 1, -1,
+      1, 1, -1,
+      1, -1, -1,
+      -1, -1, -1,
+    ],
+  
+    indices: [
+      0, 1, 2, 
+      0, 2, 3, 
 
-    ]),
-    
-    indices: new Uint16Array([
-      0, 1, 2,
-      0, 2, 3,
-      0, 3, 4,
-      3, 4, 5,
-      0, 1, 4,
-      1, 4, 6,
-      1, 2, 6,
-      2, 6, 7,
-      2, 3, 7,
-      3, 7, 5,
-      4, 5, 6,
-      6, 7, 5,
+      4, 5, 6, 
+      4, 6, 7,
 
-    ]),
+      8, 9, 10,
+      8, 10, 11,
 
-    color: new Float32Array([
-      1, 0, 0, 1,
-      1, 0, 0, 1,
-      1, 0, 1, 1,
-      0, 1, 1, 1,
-      1, 0, 1, 1,
-      1, 1, 0, 1,
-      1, 0, 0, 1,
-      1, 0, 1, 1,
-    ]),
+      12, 13, 14,
+      12, 14, 15,
+
+      16, 17, 18,
+      16, 18, 19,
+
+      20, 21, 22,
+      20, 22, 23,
+    ],
   };
   
-
-  const calculateNormal = (position, indices) => {
-    let pontos = []
-    let faces = []
-    let resultado
-    
-    for (let i = 0; i < position.length; i += 3) {
-        pontos.push([position[i], position[i+1],position[i+2]])
-    }
-    
-    for (let i = 0; i < indices.length; i += 3) {
-        faces.push([indices[i], indices[i+1],indices[i+2]])
-    }
-    
-    normal = faces.map(item => {
-        vetorA = [pontos[item[1]][0] - pontos[item[0]][0], pontos[item[1]][1] - pontos[item[0]][1], pontos[item[1]][2] - pontos[item[0]][2]]
-        vetorB = [pontos[item[2]][0] - pontos[item[0]][0], pontos[item[2]][1] - pontos[item[0]][1], pontos[item[2]][2] - pontos[item[0]][2]]
-    
-        produto = [
-            vetorA[1] * vetorB[2] - vetorB[1] * vetorA[2],
-            vetorB[0] * vetorA[2] - vetorA[0] * vetorB[2],
-            vetorA[0] * vetorB[1] - vetorB[0] * vetorA[1]
-        ]
-    
-        distancia = Math.abs(Math.sqrt(produto[0] * produto[0] + produto[1] * produto[1] + produto[2] * produto[2]))
-    
-        resultado = produto.map(item => item / distancia)
-    
-        return resultado
-    })
-
-    return normal
-}
