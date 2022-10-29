@@ -153,7 +153,7 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
     node.drawInfo = {
       uniforms: {
-        lightWorldPositionLocation: [0,0,-1],
+        lightWorldPositionLocation: [0,0,100],
         u_color: [0.2, 1, 0.2, 1],
       },
       programInfo: programInfo,
@@ -183,7 +183,7 @@ function main() {
 
   //Calcula a normal dos objetos para inicialização:
   arrays_cube.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
-  arrays_pyramid.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
+  arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
 
   console.log(arrays_pyramid.normal);
 
@@ -268,15 +268,14 @@ function main() {
 
 
     var adjust;
-    var speed = 100;
+    var speed = 2.5;
     var time = time * speed;
 
     var fRotationRadians = degToRad(uiObj.rotation.y);
 
-
     adjust = degToRad(time * uiObj.rotation.x);
     
-    if(uiObj.isObjectSelected) {      
+    if(uiObj.isObjectSelected) {
       nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
@@ -287,13 +286,15 @@ function main() {
 
     // Compute all the matrices for rendering
     objects.forEach(function (object) {
+      
       object.drawInfo.uniforms.u_matrix = m4.multiply(
         viewProjectionMatrix,
         object.worldMatrix
       );
-      object.drawInfo.uniforms.lightWorldPositionLocation = [teste.x, teste.y, teste.z];
-      
-      object.drawInfo.uniforms.u_world = object.worldMatrix;
+
+      //object.drawInfo.uniforms.lightWorldPositionLocation = [teste.x, teste.y, teste.z];
+
+      object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
 
       object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(object.worldMatrix));
       
