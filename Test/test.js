@@ -166,7 +166,6 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
     node.drawInfo = {
       uniforms: {
-        lightWorldPositionLocation: [0,0,100],
         u_color: [0.2, 1, 0.2, 1],
       },
       programInfo: programInfo,
@@ -308,7 +307,7 @@ function main() {
         object.worldMatrix
       );
 
-      //object.drawInfo.uniforms.lightWorldPositionLocation = [teste.x, teste.y, teste.z];
+      object.drawInfo.uniforms.u_lightWorldPosition = [teste.x, teste.y, teste.z];
 
       object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
 
