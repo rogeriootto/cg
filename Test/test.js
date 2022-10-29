@@ -6,13 +6,16 @@ in vec4 a_position;
 in vec3 a_normal;
 
 uniform vec3 u_lightWorldPosition;
+uniform vec3 u_viewWorldPosition;
 
 uniform mat4 u_matrix;
 uniform mat4 u_world;
 uniform mat4 u_worldInverseTranspose;
 
 out vec3 v_normal;
+
 out vec3 v_surfaceToLight;
+out vec3 v_surfaceToView;
 
 void main() {
   // Multiply the position by the matrix.
@@ -25,6 +28,7 @@ void main() {
 
   v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
 
+  v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
 }
 `;
 
@@ -36,8 +40,10 @@ precision highp float;
 
 in vec3 v_normal;
 in vec3 v_surfaceToLight;
+in vec3 v_surfaceToView;
 
 uniform vec4 u_color;
+uniform float u_shininess;
 
 out vec4 outColor;
 
@@ -45,11 +51,20 @@ void main() {
   vec3 normal = normalize(v_normal);
 
   vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+  vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+  vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
 
   float light = dot(v_normal, surfaceToLightDirection);
+  float specular = 0.0;
+
+  if (light > 0.0) {
+    specular = pow(dot(normal, halfVector), u_shininess);
+  }
+
   outColor = u_color;
 
   outColor.rgb *= light;
+  outColor.rgb += specular;
 }
 `;
 
@@ -132,8 +147,6 @@ var objects = [];
 var nodeInfosByName = {};
 var scene;
 var objeto = {};
-var countF = 0;
-var countC = 0;
 var programInfo;
 var gl;
 
@@ -274,9 +287,12 @@ function main() {
     var fRotationRadians = degToRad(uiObj.rotation.y);
 
     adjust = degToRad(time * uiObj.rotation.x);
+
+    console.log(time);
     
     if(uiObj.isObjectSelected) {
       nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
+      nodeInfosByName[uiObj.selectedName].trs.rotation[1] = time;
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
     }
@@ -298,6 +314,9 @@ function main() {
 
       object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(object.worldMatrix));
       
+      object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
+
+      object.drawInfo.uniforms.u_shininess = uiObj.shininess;
     });
 
     // ------ Draw the objects --------

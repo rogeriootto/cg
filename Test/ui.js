@@ -28,6 +28,8 @@ var uiObj = {
     
   color: [0,0,0,1],
 
+  shininess: 300,
+
   ['Create Pyramid']: function() {
     createObj("pyramid");
   },
@@ -133,6 +135,8 @@ var uiObj = {
     gui.add(teste, 'x', -100, 100);
     gui.add(teste, 'y', -100, 100);
     gui.add(teste, 'z', -100, 100);
+
+    gui.add(uiObj, 'shininess', 0, 300);
 
     
   }
