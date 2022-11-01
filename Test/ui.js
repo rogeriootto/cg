@@ -9,6 +9,8 @@ var uiObj = {
   isWireframeOn: false,
   objArray: [],
     
+  animationSpeed: 2.5,
+
   translation: {
     x: 0.0,
     y: 0.0,
@@ -78,7 +80,7 @@ var uiObj = {
     gui.add(uiObj, 'selectedName', uiObj.objArray).onChange(event => {
       selectedName = event;
       uiObj.isObjectSelected = true;
-      
+
       uiObj.translation.x = nodeInfosByName[selectedName].trs.translation[0];
       uiObj.translation.y = nodeInfosByName[selectedName].trs.translation[1];
       uiObj.translation.z = nodeInfosByName[selectedName].trs.translation[2];
@@ -114,6 +116,11 @@ var uiObj = {
       
     });
 
+    const createFolder = gui.addFolder('Create Object')
+    createFolder.add(uiObj, 'Create Pyramid');
+    createFolder.add(uiObj, 'Create Cube');
+    createFolder.add(uiObj, 'Create amogus');
+
     const geometryFolder = gui.addFolder('Geometry');
     geometryFolder.closed = false;
     //geometryFolder.open();
@@ -133,6 +140,7 @@ var uiObj = {
     scaleFolder.add(uiObj.scale, 'z', -10.0, 10.0);
 
     geometryFolder.addColor(uiObj, 'color');
+    geometryFolder.add(uiObj, 'animationSpeed', -5, 10);
 
     const cameraFolder = gui.addFolder('Camera');
     cameraFolder.add(uiCamera, 'x', -10.0, 10.0);
@@ -142,17 +150,12 @@ var uiObj = {
     cameraFolder.add(uiCamera, 'ty', -10.0, 10.0);
     cameraFolder.add(uiCamera, 'tz', -10.0, 10.0);
     
-    const createFolder = gui.addFolder('Create Object')
-    createFolder.add(uiObj, 'Create Pyramid');
-    createFolder.add(uiObj, 'Create Cube');
-    createFolder.add(uiObj, 'Create amogus');
-    
     var lightfolder = gui.addFolder('Luz')
-    lightfolder.add(luz, 'x', -100, 100);
-    lightfolder.add(luz, 'y', -100, 100);
-    lightfolder.add(luz, 'z', -100, 100);
+    lightfolder.add(luz, 'x', -10, 10);
+    lightfolder.add(luz, 'y', -10, 10);
+    lightfolder.add(luz, 'z', -15, 15);
 
-    lightfolder.add(uiObj, 'shininess', 0, 300);
+    lightfolder.add(uiObj, 'shininess', 0, 500);
 
     gui.add(teste, 'x', -10, 10).onChange(event => {
 

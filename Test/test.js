@@ -207,6 +207,8 @@ Node.prototype.updateWorldMatrix = function (matrix) {
   });
 };
 
+var then = 0;
+
 var cubeVAO;
 var cubeBufferInfo;
 
@@ -346,12 +348,15 @@ function main() {
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
-  function drawScene(time) {
+  function drawScene(now) {
     if(gui == null) {
       createGUI();
     }
-    time *= 0.001;
-    
+
+    now *= 0.001;
+    //var deltaTime = now - then;
+    //then = now;
+
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
     // Tell WebGL how to convert from clip space to pixels
@@ -375,22 +380,19 @@ function main() {
     
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-
-    var adjust;
-    var speed = 2.5;
-    var time = time * speed;
-
+    deltaTime = now;
+    //var speed = 2.5;
+    var deltaTime = deltaTime * uiObj.animationSpeed;
+    
     var fRotationRadians = degToRad(uiObj.rotation.y);
 
-    adjust = degToRad(time * uiObj.rotation.x);
-    
     if(uiObj.isObjectSelected) {
       nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
 
       if(uiObj.isAnimationPlaying) {
-        nodeInfosByName[uiObj.selectedName].trs.rotation[1] = time;
+        nodeInfosByName[uiObj.selectedName].trs.rotation[1] = deltaTime;
       }
       
     }
