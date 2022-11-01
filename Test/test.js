@@ -68,6 +68,80 @@ void main() {
 }
 `;
 
+
+var vsw = `
+#version 300 es
+
+in vec3 a_barycentric;
+in vec4 a_position;
+in vec3 a_normal;
+
+uniform vec3 u_lightWorldPosition;
+uniform vec3 u_viewWorldPosition;
+
+uniform mat4 u_matrix;
+uniform mat4 u_world;
+uniform mat4 u_worldInverseTranspose;
+
+out vec3 vbc;
+out vec3 v_normal;
+
+out vec3 v_surfaceToLight;
+out vec3 v_surfaceToView;
+
+void main() {
+  // Multiply the position by the matrix.
+  vbc = a_barycentric;
+  gl_Position = u_matrix * a_position;
+
+  // Pass the color to the fragment shader.
+  v_normal = mat3(u_worldInverseTranspose) * a_normal;
+
+  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+
+  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+
+  v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
+} 
+`;
+
+var fsw = `
+#version 300 es
+
+precision highp float;
+
+in vec3 vbc;
+
+// Passed in from the vertex shader.
+
+in vec3 v_normal;
+in vec3 v_surfaceToLight;
+in vec3 v_surfaceToView;
+
+uniform vec4 u_color;
+uniform float u_shininess;
+
+out vec4 outColor;
+
+void main() {
+  vec3 normal = normalize(v_normal);
+
+  vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+  vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+  vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+
+  float light = dot(v_normal, surfaceToLightDirection);
+  float specular = 0.0;
+
+  if(vbc.x < 0.03 || vbc.y < 0.03 || vbc.z < 0.03) {
+    outColor = vec4(0.0, 0.0, 0.0, 1.0);
+  } 
+  else {
+    outColor = vec4(0.0, 0.0, 0.0, 0);
+  }
+}
+`;
+
 var TRS = function() {
   this.translation = [0, 0, 0];
   this.rotation = [0, 0, 0];
@@ -184,6 +258,14 @@ function makeNode(nodeDescription) {
 function makeNodes(nodeDescriptions) {
   return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
 }
+
+const calculateBarycentric = (length) => {
+  const n = length / 6;
+  const barycentric = [];
+  for (let i = 0; i < n; i++) barycentric.push(1, 0, 0, 0, 1, 0, 0, 0, 1);
+  return barycentric;
+};
+
 function main() {
   // Get A WebGL context
   /** @type {HTMLCanvasElement} */
@@ -195,9 +277,25 @@ function main() {
 
   //Calcula a normal dos objetos para inicialização:
   arrays_cube.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
-  arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
 
-  console.log(arrays_pyramid.normal);
+  var cubopontos = []
+
+  for(let i=0; i < arrays_cube.indices.length; i++) {
+    console.log(arrays_cube.indices[i]);
+    cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3])
+    cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 1])
+    cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 2]);
+  }
+
+  console.log(cubopontos);
+
+  //arrays_cube.position = cubopontos;
+
+  arrays_cube.barycentric = calculateBarycentric(arrays_cube.position.length);
+  console.log(arrays_cube.barycentric);
+  arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+  arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
+
 
   // Tell the twgl to match position with a_position, n
   // normal with a_normal etc..
@@ -210,7 +308,7 @@ function main() {
   
   // setup GLSL program
   
-  programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+  programInfo = twgl.createProgramInfo(gl, [vsw, fsw]);
 
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
   pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
@@ -269,7 +367,7 @@ function main() {
 
     // Compute the camera's matrix using look at.
     cameraPosition = [uiCamera.x, uiCamera.y, uiCamera.z];
-    target = [uiCamera.tx, uiCamera.ty, uiCamera.tz];
+    target = [uiCamera.x, uiCamera.ty, uiCamera.z - 10];
     up = [0, 1, 0];
     var cameraMatrix = m4.lookAt(cameraPosition, target, up);
 
@@ -286,14 +384,16 @@ function main() {
     var fRotationRadians = degToRad(uiObj.rotation.y);
 
     adjust = degToRad(time * uiObj.rotation.x);
-
-    console.log(time);
     
     if(uiObj.isObjectSelected) {
       nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
-      nodeInfosByName[uiObj.selectedName].trs.rotation[1] = time;
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
+
+      if(uiObj.isAnimationPlaying) {
+        nodeInfosByName[uiObj.selectedName].trs.rotation[1] = time;
+      }
+      
     }
 
     // Update all world matrices in the scene graph
@@ -307,7 +407,7 @@ function main() {
         object.worldMatrix
       );
 
-      object.drawInfo.uniforms.u_lightWorldPosition = [teste.x, teste.y, teste.z];
+      object.drawInfo.uniforms.u_lightWorldPosition = [luz.x, luz.y, luz.z];
 
       object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
 

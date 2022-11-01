@@ -5,6 +5,7 @@ var uiObj = {
   selectedName: "",
 
   isObjectSelected: false,
+  isAnimationPlaying: false,
   objArray: [],
     
   translation: {
@@ -54,10 +55,16 @@ var uiObj = {
     tz: 0.0
   }
 
+  var luz = {
+    x: 0,
+    y: 0,
+    z: 5,
+  }
+
   var teste = {
     x: 0,
     y: 0,
-    z: -1,
+    z: 0,
   }
 
   var gui = null;
@@ -88,6 +95,7 @@ var uiObj = {
     });
 
     gui.add(uiObj, 'isObjectSelected');
+    gui.add(uiObj, 'isAnimationPlaying');
 
     const geometryFolder = gui.addFolder('Geometry');
     geometryFolder.closed = false;
@@ -122,21 +130,22 @@ var uiObj = {
     createFolder.add(uiObj, 'Create Cube');
     createFolder.add(uiObj, 'Create amogus');
     
-    // gui.add(teste, 'x', -10, 10).onChange(event => {
+    var lightfolder = gui.addFolder('Luz')
+    lightfolder.add(luz, 'x', -100, 100);
+    lightfolder.add(luz, 'y', -100, 100);
+    lightfolder.add(luz, 'z', -100, 100);
 
-    //   arrays_cube.position[0] = teste.x;
+    lightfolder.add(uiObj, 'shininess', 0, 300);
 
-    //   objectsToDraw[0].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
-    //   objectsToDraw[0].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+    gui.add(teste, 'x', -10, 10).onChange(event => {
 
-    //   //console.log()
-    // });
+      arrays_cube.position[uiObj.selectedName] = teste.x;
 
-    gui.add(teste, 'x', -100, 100);
-    gui.add(teste, 'y', -100, 100);
-    gui.add(teste, 'z', -100, 100);
+      objectsToDraw[uiObj.selectedName].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+      objectsToDraw[uiObj.selectedName].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
 
-    gui.add(uiObj, 'shininess', 0, 300);
+      //console.log()
+    });
 
     
   }
