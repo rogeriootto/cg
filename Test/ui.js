@@ -77,7 +77,8 @@ var uiObj = {
 
     gui.add(uiObj, 'selectedName', uiObj.objArray).onChange(event => {
       selectedName = event;
-
+      uiObj.isObjectSelected = true;
+      
       uiObj.translation.x = nodeInfosByName[selectedName].trs.translation[0];
       uiObj.translation.y = nodeInfosByName[selectedName].trs.translation[1];
       uiObj.translation.z = nodeInfosByName[selectedName].trs.translation[2];
@@ -95,11 +96,11 @@ var uiObj = {
 
     });
 
-    gui.add(uiObj, 'isObjectSelected');
+    //gui.add(uiObj, 'isObjectSelected');
     gui.add(uiObj, 'isAnimationPlaying');
 
     gui.add(uiObj, 'isWireframeOn').onChange(event => {
-      console.log(scene);
+
       if(uiObj.isWireframeOn) {
         for(let i=0; i < scene.children.length; i++) {
           scene.children[i].drawInfo.programInfo = programInfoWireframe;

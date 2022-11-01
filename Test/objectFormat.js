@@ -43,8 +43,7 @@ function createObj(name) {
     }
   }
 
-  uiObj.objArray.push(newObj.name)
-  console.log(uiObj.objArray);
+  uiObj.objArray.push(newObj.name);
   
   objeto.children.push(newObj);
 

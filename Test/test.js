@@ -282,18 +282,15 @@ function main() {
   var cubopontos = []
 
   for(let i=0; i < arrays_cube.indices.length; i++) {
-    console.log(arrays_cube.indices[i]);
+   
     cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3])
     cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 1])
     cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 2]);
   }
 
-  console.log(cubopontos);
-
   //arrays_cube.position = cubopontos;
 
   arrays_cube.barycentric = calculateBarycentric(arrays_cube.position.length);
-  console.log(arrays_cube.barycentric);
   arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
   arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
 
