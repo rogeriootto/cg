@@ -222,6 +222,7 @@ var nodeInfosByName = {};
 var scene;
 var objeto = {};
 var programInfo;
+var programInfoWireframe;
 var gl;
 
 //CAMERA VARIABLES
@@ -308,7 +309,8 @@ function main() {
   
   // setup GLSL program
   
-  programInfo = twgl.createProgramInfo(gl, [vsw, fsw]);
+  programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+  programInfoWireframe = twgl.createProgramInfo(gl, [vsw, fsw]);
 
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
   pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);

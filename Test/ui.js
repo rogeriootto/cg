@@ -6,6 +6,7 @@ var uiObj = {
 
   isObjectSelected: false,
   isAnimationPlaying: false,
+  isWireframeOn: false,
   objArray: [],
     
   translation: {
@@ -97,6 +98,21 @@ var uiObj = {
     gui.add(uiObj, 'isObjectSelected');
     gui.add(uiObj, 'isAnimationPlaying');
 
+    gui.add(uiObj, 'isWireframeOn').onChange(event => {
+      console.log(scene);
+      if(uiObj.isWireframeOn) {
+        for(let i=0; i < scene.children.length; i++) {
+          scene.children[i].drawInfo.programInfo = programInfoWireframe;
+        }
+      }
+      else {
+        for(let i=0; i < scene.children.length; i++) {
+          scene.children[i].drawInfo.programInfo = programInfo;
+        }
+      }
+      
+    });
+
     const geometryFolder = gui.addFolder('Geometry');
     geometryFolder.closed = false;
     //geometryFolder.open();
@@ -141,8 +157,11 @@ var uiObj = {
 
       arrays_cube.position[uiObj.selectedName] = teste.x;
 
-      objectsToDraw[uiObj.selectedName].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
-      objectsToDraw[uiObj.selectedName].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+
+      //objectsToDraw[uiObj.selectedName].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+      //objectsToDraw[uiObj.selectedName].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
 
       //console.log()
     });
