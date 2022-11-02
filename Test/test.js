@@ -215,6 +215,8 @@ var pyramidBufferInfo;
 var pyraVAO;
 var amongusVAO;
 var amongusBufferInfo;
+var triangleVAO;
+var triangleBufferInfo;
 
 var objectsToDraw = [];
 var objects = [];
@@ -282,6 +284,8 @@ function main() {
   arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
   arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
 
+  triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
+  triangleData.barycentric = calculateBarycentric(triangleData.position.length);
 
   // Tell the twgl to match position with a_position, n
   // normal with a_normal etc..
@@ -291,6 +295,7 @@ function main() {
   cubeBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
   pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
   amongusBufferInfo = twgl.createBufferInfoFromArrays(gl, amongusdata);
+  triangleBufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
   
   // setup GLSL program
   
@@ -299,8 +304,8 @@ function main() {
 
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
   pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
-
   amongusVAO = twgl.createVAOFromBufferInfo(gl, programInfo, amongusBufferInfo);
+  triangleVAO = twgl.createVAOFromBufferInfo(gl, programInfo, triangleBufferInfo);
 
   objectsToDraw = [];
   objects = [];
@@ -370,6 +375,8 @@ function main() {
       }
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
+
+      console.log(nodeInfosByName[uiObj.selectedName]);
 
       if(uiObj.isAnimationPlaying) { //Animação
         now *= 0.001;

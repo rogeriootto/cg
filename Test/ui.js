@@ -42,15 +42,15 @@ var uiObj = {
     createObj("cube");
   },
 
-  ['Create amogus']: function() {
-    createObj("amongus");
+  ['Create triangle']: function() {
+    createObj("triangle");
   },
 };
 
   var uiCamera = {
     x: 0,
     y: 0.0,
-    z: 10.0,
+    z: 4.0,
 
     //target
     tx: 0.0,
@@ -119,7 +119,7 @@ var uiObj = {
     const createFolder = gui.addFolder('Create Object')
     createFolder.add(uiObj, 'Create Pyramid');
     createFolder.add(uiObj, 'Create Cube');
-    createFolder.add(uiObj, 'Create amogus');
+    createFolder.add(uiObj, 'Create triangle');
 
     const geometryFolder = gui.addFolder('Geometry');
     geometryFolder.closed = false;
