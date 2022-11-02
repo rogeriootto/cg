@@ -6,8 +6,11 @@ var uiObj = {
 
   isObjectSelected: false,
   isAnimationPlaying: false,
+  isWireframeOn: false,
   objArray: [],
     
+  animationSpeed: 2.5,
+
   translation: {
     x: 0.0,
     y: 0.0,
@@ -76,6 +79,7 @@ var uiObj = {
 
     gui.add(uiObj, 'selectedName', uiObj.objArray).onChange(event => {
       selectedName = event;
+      uiObj.isObjectSelected = true;
 
       uiObj.translation.x = nodeInfosByName[selectedName].trs.translation[0];
       uiObj.translation.y = nodeInfosByName[selectedName].trs.translation[1];
@@ -94,8 +98,28 @@ var uiObj = {
 
     });
 
-    gui.add(uiObj, 'isObjectSelected');
+    //gui.add(uiObj, 'isObjectSelected');
     gui.add(uiObj, 'isAnimationPlaying');
+
+    gui.add(uiObj, 'isWireframeOn').onChange(event => {
+
+      if(uiObj.isWireframeOn) {
+        for(let i=0; i < scene.children.length; i++) {
+          scene.children[i].drawInfo.programInfo = programInfoWireframe;
+        }
+      }
+      else {
+        for(let i=0; i < scene.children.length; i++) {
+          scene.children[i].drawInfo.programInfo = programInfo;
+        }
+      }
+      
+    });
+
+    const createFolder = gui.addFolder('Create Object')
+    createFolder.add(uiObj, 'Create Pyramid');
+    createFolder.add(uiObj, 'Create Cube');
+    createFolder.add(uiObj, 'Create amogus');
 
     const geometryFolder = gui.addFolder('Geometry');
     geometryFolder.closed = false;
@@ -116,6 +140,7 @@ var uiObj = {
     scaleFolder.add(uiObj.scale, 'z', -10.0, 10.0);
 
     geometryFolder.addColor(uiObj, 'color');
+    geometryFolder.add(uiObj, 'animationSpeed', -5, 10);
 
     const cameraFolder = gui.addFolder('Camera');
     cameraFolder.add(uiCamera, 'x', -10.0, 10.0);
@@ -125,24 +150,22 @@ var uiObj = {
     cameraFolder.add(uiCamera, 'ty', -10.0, 10.0);
     cameraFolder.add(uiCamera, 'tz', -10.0, 10.0);
     
-    const createFolder = gui.addFolder('Create Object')
-    createFolder.add(uiObj, 'Create Pyramid');
-    createFolder.add(uiObj, 'Create Cube');
-    createFolder.add(uiObj, 'Create amogus');
-    
     var lightfolder = gui.addFolder('Luz')
-    lightfolder.add(luz, 'x', -100, 100);
-    lightfolder.add(luz, 'y', -100, 100);
-    lightfolder.add(luz, 'z', -100, 100);
+    lightfolder.add(luz, 'x', -10, 10);
+    lightfolder.add(luz, 'y', -10, 10);
+    lightfolder.add(luz, 'z', -15, 15);
 
-    lightfolder.add(uiObj, 'shininess', 0, 300);
+    lightfolder.add(uiObj, 'shininess', 0, 500);
 
     gui.add(teste, 'x', -10, 10).onChange(event => {
 
       arrays_cube.position[uiObj.selectedName] = teste.x;
 
-      objectsToDraw[uiObj.selectedName].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
-      objectsToDraw[uiObj.selectedName].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+
+      //objectsToDraw[uiObj.selectedName].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+      //objectsToDraw[uiObj.selectedName].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
 
       //console.log()
     });

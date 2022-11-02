@@ -207,12 +207,12 @@ Node.prototype.updateWorldMatrix = function (matrix) {
   });
 };
 
+var then = 0;
+
 var cubeVAO;
 var cubeBufferInfo;
-
 var pyramidBufferInfo;
 var pyraVAO;
-
 var amongusVAO;
 var amongusBufferInfo;
 
@@ -222,6 +222,7 @@ var nodeInfosByName = {};
 var scene;
 var objeto = {};
 var programInfo;
+var programInfoWireframe;
 var gl;
 
 //CAMERA VARIABLES
@@ -281,18 +282,15 @@ function main() {
   var cubopontos = []
 
   for(let i=0; i < arrays_cube.indices.length; i++) {
-    console.log(arrays_cube.indices[i]);
+   
     cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3])
     cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 1])
     cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 2]);
   }
 
-  console.log(cubopontos);
-
   //arrays_cube.position = cubopontos;
 
   arrays_cube.barycentric = calculateBarycentric(arrays_cube.position.length);
-  console.log(arrays_cube.barycentric);
   arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
   arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
 
@@ -308,7 +306,8 @@ function main() {
   
   // setup GLSL program
   
-  programInfo = twgl.createProgramInfo(gl, [vsw, fsw]);
+  programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+  programInfoWireframe = twgl.createProgramInfo(gl, [vsw, fsw]);
 
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
   pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
@@ -347,12 +346,13 @@ function main() {
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
-  function drawScene(time) {
+  function drawScene(now) {
     if(gui == null) {
       createGUI();
     }
-    time *= 0.001;
+   
     
+
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
     // Tell WebGL how to convert from clip space to pixels
@@ -375,23 +375,23 @@ function main() {
     var viewMatrix = m4.inverse(cameraMatrix);
     
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
-
-
-    var adjust;
-    var speed = 2.5;
-    var time = time * speed;
-
+    
     var fRotationRadians = degToRad(uiObj.rotation.y);
 
-    adjust = degToRad(time * uiObj.rotation.x);
-    
     if(uiObj.isObjectSelected) {
-      nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
+      if(!uiObj.isAnimationPlaying){
+        nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
+      }
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
 
-      if(uiObj.isAnimationPlaying) {
-        nodeInfosByName[uiObj.selectedName].trs.rotation[1] = time;
+      if(uiObj.isAnimationPlaying) { //Animação
+        now *= 0.001;
+        console.log(`now ${now}, then ${then}`);
+        var deltaTime = now - then;
+        console.log(deltaTime);
+        then = now;
+        nodeInfosByName[uiObj.selectedName].trs.rotation[1] += (deltaTime * uiObj.animationSpeed);
       }
       
     }
