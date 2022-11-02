@@ -278,18 +278,6 @@ function main() {
 
   //Calcula a normal dos objetos para inicialização:
   arrays_cube.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
-
-  var cubopontos = []
-
-  for(let i=0; i < arrays_cube.indices.length; i++) {
-   
-    cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3])
-    cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 1])
-    cubopontos.push(arrays_cube.position[arrays_cube.indices[i]*3 + 2]);
-  }
-
-  //arrays_cube.position = cubopontos;
-
   arrays_cube.barycentric = calculateBarycentric(arrays_cube.position.length);
   arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
   arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
@@ -342,7 +330,6 @@ function main() {
 
   var fieldOfViewRadians = degToRad(60);
 
-
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
@@ -352,7 +339,6 @@ function main() {
     }
    
     
-
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
     // Tell WebGL how to convert from clip space to pixels
@@ -387,9 +373,9 @@ function main() {
 
       if(uiObj.isAnimationPlaying) { //Animação
         now *= 0.001;
-        console.log(`now ${now}, then ${then}`);
+        //console.log(`now ${now}, then ${then}`);
         var deltaTime = now - then;
-        console.log(deltaTime);
+        //console.log(deltaTime);
         then = now;
         nodeInfosByName[uiObj.selectedName].trs.rotation[1] += (deltaTime * uiObj.animationSpeed);
       }
