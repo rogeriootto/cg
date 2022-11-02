@@ -45,6 +45,10 @@ var uiObj = {
   ['Create triangle']: function() {
     createObj("triangle");
   },
+
+  ['Create vertice']: function() {
+    createVertice(1);
+  }
 };
 
   var uiCamera = {
@@ -170,5 +174,6 @@ var uiObj = {
       //console.log()
     });
 
+    gui.add(uiObj, 'Create vertice');
     
   }

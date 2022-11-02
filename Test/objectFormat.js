@@ -25,24 +25,6 @@ function createObj(name) {
     newObj.bufferInfo= cubeBufferInfo;
   }
 
-  var objData = {
-    translation: {
-      x: 0,
-      y: 0,
-      z: 0,
-    },
-    rotation: {
-      x: 0.0,
-      y: 0.0,
-      z: 0.0,
-    },
-    scale : {
-      x: 0,
-      y: 0,
-      z: 0,
-    }
-  }
-
   uiObj.objArray.push(newObj.name);
   
   objeto.children.push(newObj);
@@ -156,17 +138,101 @@ var arrays_pyramid = {
 
   triangleData = {
     position: [
-      0, 0, 0,
-      1, 0, 0,
-      0.5, 1, 0,
+      0, 0, 0, //0
+      1, 0, 0, //1
+      0.5, 1, 0, //2
+
+      1, 1, 0, //3
+      2, 1, 0, //4
+      1.5, 2, 0, //5
+
+      -1, -1, 0, //0
+      0, -1, 0, //1
+      -0.5, 0, 0, //2
     ],
 
     indices: [
       0, 1, 2,
+      3, 4, 5,
+      6, 7, 8,
     ],
   }
 
   function createVertice(triangleIndex) {
+
+    buffer = triangleData;
+    var triangleIndices = [];
+    var triangleVertices = [];
+    var novoTri = [];
+
+    for(let i=0, j=0; i< buffer.indices.length; i+=3, j++) {
+      if(j == triangleIndex) {
+        triangleIndices.push(buffer.indices[i]);
+        triangleIndices.push(buffer.indices[i+1]);
+        triangleIndices.push(buffer.indices[i+2]);
+      }
+    }
+
+    for(let i=0, j=0; i < buffer.position.length; i+=3, j++) {
+
+      if(j == triangleIndices[0]) {
+        triangleVertices.push(buffer.position[i]);
+        triangleVertices.push(buffer.position[i+1]);
+        triangleVertices.push(buffer.position[i+2]);
+      }
+
+      if(j == triangleIndices[1]) {
+        triangleVertices.push(buffer.position[i]);
+        triangleVertices.push(buffer.position[i+1]);
+        triangleVertices.push(buffer.position[i+2]);
+      }
+
+      if(j == triangleIndices[2]) {
+        triangleVertices.push(buffer.position[i]);
+        triangleVertices.push(buffer.position[i+1]);
+        triangleVertices.push(buffer.position[i+2]);
+      }
+      
+    }
+
+    //ponto médio
+    var pontoMedio = [];
+    //x
+    pontoMedio.push(triangleVertices[0] + triangleVertices[3] + triangleVertices[6]);
+    //y
+    pontoMedio.push(triangleVertices[1] + triangleVertices[4] + triangleVertices[7]);
+    //z
+    pontoMedio.push(triangleVertices[2] + triangleVertices[5] + triangleVertices[8]);
+
+
+    //recriar os trianglos
+
+    //deletar o triangulo principal
+    for(let i=0, j=0; i< buffer.indices.length; i+=3, j++) {
+
+      if(j == triangleIndex) {
+        buffer.indices.slice(i);
+        buffer.indices.slice(i+1);
+        buffer.indices.slice(i+2);
+      }
+
+      if(j > triangleIndex) {
+        buffer.indices[i] -= 3;
+        buffer.indices[i+1] -= 3;
+        buffer.indices[i+2] -= 3;
+      }
+
+    }
+
+    //for(let i=0, j=0; i < buffer.position.length; i+=3, j++) { {
+
+    //}
+    //triangulo da esquerda
     
+
+    console.log()
+    console.log(`ponto medio ${pontoMedio}`);
+    console.log(`indices ${triangleIndices}`);
+    console.log(`vertices ${triangleVertices}`);
   }
   
