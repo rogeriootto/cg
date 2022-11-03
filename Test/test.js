@@ -251,6 +251,8 @@ Node.prototype.updateWorldMatrix = function (matrix) {
 
 var then = 0;
 
+var texture;
+
 var cubeVAO;
 var cubeBufferInfo;
 var pyramidBufferInfo;
@@ -267,6 +269,7 @@ var scene;
 var objeto = {};
 var programInfo;
 var programInfoWireframe;
+var programInfoTexture;
 var gl;
 
 //CAMERA VARIABLES
@@ -343,11 +346,14 @@ function main() {
   
   programInfo = twgl.createProgramInfo(gl, [vs, fs]);
   programInfoWireframe = twgl.createProgramInfo(gl, [vsw, fsw]);
+  programInfoTexture = twgl.createProgramInfo(gl, [vst, fst]);
 
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
   pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
   amongusVAO = twgl.createVAOFromBufferInfo(gl, programInfo, amongusBufferInfo);
   triangleVAO = twgl.createVAOFromBufferInfo(gl, programInfo, triangleBufferInfo);
+
+  texture = twgl.createTextures(gl, {clover: {src: "texture.png"}});
 
   objectsToDraw = [];
   objects = [];

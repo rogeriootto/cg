@@ -7,6 +7,7 @@ var uiObj = {
   isObjectSelected: false,
   isAnimationPlaying: false,
   isWireframeOn: false,
+  isTextureOn: false,
   destruction: false,
   objArray: [],
     
@@ -112,6 +113,21 @@ var uiObj = {
       if(uiObj.isWireframeOn) {
         for(let i=0; i < scene.children.length; i++) {
           scene.children[i].drawInfo.programInfo = programInfoWireframe;
+        }
+      }
+      else {
+        for(let i=0; i < scene.children.length; i++) {
+          scene.children[i].drawInfo.programInfo = programInfo;
+        }
+      }
+      
+    });
+
+    gui.add(uiObj, 'isTextureOn').onChange(event => {
+
+      if(uiObj.isTextureOn) {
+        for(let i=0; i < scene.children.length; i++) {
+          scene.children[i].drawInfo.programInfo = programInfoTexture;
         }
       }
       else {
