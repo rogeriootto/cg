@@ -40,7 +40,7 @@ function createObj(name) {
 }
 
 var arrays_pyramid = {
-    position: new Float32Array([
+    position: [
       1, -1, 1, //0
       -1, -1, 1,//1
       -1, -1, -1,//2
@@ -65,9 +65,9 @@ var arrays_pyramid = {
       1, -1, 1,//16
       1, -1, -1,//15
 
-    ]),
+    ],
 
-    indices: new Uint16Array([
+    indices: [
       0,1,2,
       3,4,5,
 
@@ -75,7 +75,7 @@ var arrays_pyramid = {
       9,10,11,
       12,13,14,
       15,16,17,
-    ]),
+    ],
 };
 
 
@@ -141,25 +141,15 @@ var arrays_pyramid = {
       0, 0, 0, //0
       1, 0, 0, //1
       0.5, 1, 0, //2
-
-      1, 1, 0, //3
-      2, 1, 0, //4
-      1.5, 2, 0, //5
-
-      -1, -1, 0, //0
-      0, -1, 0, //1
-      -0.5, 0, 0, //2
     ],
 
     indices: [
       0, 1, 2,
-      3, 4, 5,
-      6, 7, 8,
     ],
   }
 
   function createVertice(triangleIndex) {
-    buffer = triangleData;
+    buffer = arrays_pyramid;
    
     var triangleIndices = [];
     var triangleVertices = [];
@@ -322,15 +312,15 @@ var arrays_pyramid = {
 
     console.log(buffer.indices);
 
-    triangleData = buffer;
+    arrays_pyramid = buffer;
 
-    triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
-    triangleData.barycentric = calculateBarycentric(triangleData.position.length);
-    triangleBufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
-    triangleVAO = twgl.createVAOFromBufferInfo(gl, programInfo, triangleBufferInfo);
+    arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+    arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
+    pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+    pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
 
-    scene.children[uiObj.selectedName].drawInfo.bufferInfo = triangleBufferInfo;
-    scene.children[uiObj.selectedName].drawInfo.vertexArray = triangleVAO;
+    scene.children[uiObj.selectedName].drawInfo.bufferInfo = pyramidBufferInfo;
+    scene.children[uiObj.selectedName].drawInfo.vertexArray = pyraVAO;
 
     //console.log(`ponto medio ${pontoMedio}`);
     //console.log(`indices ${triangleIndices}`);
