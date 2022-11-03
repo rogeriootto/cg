@@ -376,8 +376,6 @@ function main() {
       nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
       nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
 
-      console.log(nodeInfosByName[uiObj.selectedName]);
-
       if(uiObj.isAnimationPlaying) { //Animação
         now *= 0.001;
         //console.log(`now ${now}, then ${then}`);
@@ -387,6 +385,11 @@ function main() {
         nodeInfosByName[uiObj.selectedName].trs.rotation[1] += (deltaTime * uiObj.animationSpeed);
       }
       
+    }
+
+    if(uiObj.destruction) {
+      createVertice(0);
+      createVertice(1);
     }
 
     // Update all world matrices in the scene graph
@@ -411,6 +414,7 @@ function main() {
       object.drawInfo.uniforms.u_shininess = uiObj.shininess;
     });
 
+    
     // ------ Draw the objects --------
 
     twgl.drawObjectList(gl, objectsToDraw);

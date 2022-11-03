@@ -7,6 +7,7 @@ var uiObj = {
   isObjectSelected: false,
   isAnimationPlaying: false,
   isWireframeOn: false,
+  destruction: false,
   objArray: [],
     
   animationSpeed: 2.5,
@@ -47,7 +48,7 @@ var uiObj = {
   },
 
   ['Create vertice']: function() {
-    createVertice(1);
+    createVertice(0);
   }
 };
 
@@ -104,6 +105,7 @@ var uiObj = {
 
     //gui.add(uiObj, 'isObjectSelected');
     gui.add(uiObj, 'isAnimationPlaying');
+    gui.add(uiObj, 'destruction');
 
     gui.add(uiObj, 'isWireframeOn').onChange(event => {
 

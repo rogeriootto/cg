@@ -159,8 +159,8 @@ var arrays_pyramid = {
   }
 
   function createVertice(triangleIndex) {
-
     buffer = triangleData;
+   
     var triangleIndices = [];
     var triangleVertices = [];
     var novoTri = [];
@@ -198,41 +198,142 @@ var arrays_pyramid = {
     //ponto médio
     var pontoMedio = [];
     //x
-    pontoMedio.push(triangleVertices[0] + triangleVertices[3] + triangleVertices[6]);
+    pontoMedio.push((triangleVertices[0] + triangleVertices[3] + triangleVertices[6])/3);
     //y
-    pontoMedio.push(triangleVertices[1] + triangleVertices[4] + triangleVertices[7]);
+    pontoMedio.push((triangleVertices[1] + triangleVertices[4] + triangleVertices[7])/3);
     //z
-    pontoMedio.push(triangleVertices[2] + triangleVertices[5] + triangleVertices[8]);
-
+    pontoMedio.push((triangleVertices[2] + triangleVertices[5] + triangleVertices[8])/3);
 
     //recriar os trianglos
 
     //deletar o triangulo principal
+    //remove dos indices
     for(let i=0, j=0; i< buffer.indices.length; i+=3, j++) {
-
       if(j == triangleIndex) {
-        buffer.indices.slice(i);
-        buffer.indices.slice(i+1);
-        buffer.indices.slice(i+2);
+        buffer.indices.splice(i, 3);
       }
+    }
 
-      if(j > triangleIndex) {
+    for(let i=0, j=0; i< buffer.indices.length; i+=3, j++) {
+      if(j >= triangleIndex) {
         buffer.indices[i] -= 3;
         buffer.indices[i+1] -= 3;
         buffer.indices[i+2] -= 3;
       }
-
     }
 
-    //for(let i=0, j=0; i < buffer.position.length; i+=3, j++) { {
+    for(let i=0, j=0; i < buffer.position.length; i+=3, j++) {
+      if(j == triangleIndices[0]) {
+        buffer.position.splice(i, 3);
+      }
+    }
 
-    //}
+    for(let i=0, j=0; i < buffer.position.length; i+=3, j++) {
+
+      if(j == triangleIndices[0]) {
+        buffer.position.splice(i, 3);
+      }
+    }
+
+    for(let i=0, j=0; i < buffer.position.length; i+=3, j++) {
+
+      if(j == triangleIndices[0]) {
+        buffer.position.splice(i, 3);
+      }
+    }
+
     //triangulo da esquerda
-    
+    //0x
+    novoTri.push(triangleVertices[0]);
+    //0y
+    novoTri.push(triangleVertices[1]);
+    //0z
+    novoTri.push(triangleVertices[2]);
 
-    console.log()
-    console.log(`ponto medio ${pontoMedio}`);
-    console.log(`indices ${triangleIndices}`);
-    console.log(`vertices ${triangleVertices}`);
+    //4x
+    novoTri.push(pontoMedio[0]);
+    //4y
+    novoTri.push(pontoMedio[1]);
+    //4z
+    novoTri.push(pontoMedio[2]);
+
+    //2x
+    novoTri.push(triangleVertices[6]);
+    //2y
+    novoTri.push(triangleVertices[7]);
+    //2z
+    novoTri.push(triangleVertices[8]);
+
+    //triangulo do meio
+    //0x
+    novoTri.push(triangleVertices[0]);
+    //0y
+    novoTri.push(triangleVertices[1]);
+    //0z
+    novoTri.push(triangleVertices[2]);
+
+    //1x
+    novoTri.push(triangleVertices[3]);
+    //1y
+    novoTri.push(triangleVertices[4]);
+    //1z
+    novoTri.push(triangleVertices[5]);
+
+    //4x
+    novoTri.push(pontoMedio[0]);
+    //4y
+    novoTri.push(pontoMedio[1]);
+    //4z
+    novoTri.push(pontoMedio[2]);
+
+    //triangulo direito
+    //1x
+    novoTri.push(triangleVertices[3]);
+    //1y
+    novoTri.push(triangleVertices[4]);
+    //1z
+    novoTri.push(triangleVertices[5]);
+
+    //2x
+    novoTri.push(triangleVertices[6]);
+    //2y
+    novoTri.push(triangleVertices[7]);
+    //2z
+    novoTri.push(triangleVertices[8]);
+
+    //4x
+    novoTri.push(pontoMedio[0]);
+    //4y
+    novoTri.push(pontoMedio[1]);
+    //4z
+    novoTri.push(pontoMedio[2]);
+
+    //insere novos vertices
+    for(let i=0; i< novoTri.length; i++) {
+      buffer.position.push(novoTri[i]);
+    }
+
+    var temp = buffer.indices.length - 1;
+    for(let i=0; i< 3; i++) {
+      buffer.indices.push(temp = temp+1);
+      buffer.indices.push(temp = temp+1);
+      buffer.indices.push(temp = temp+1);
+    }
+
+    console.log(buffer.indices);
+
+    triangleData = buffer;
+
+    triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
+    triangleData.barycentric = calculateBarycentric(triangleData.position.length);
+    triangleBufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
+    triangleVAO = twgl.createVAOFromBufferInfo(gl, programInfo, triangleBufferInfo);
+
+    scene.children[uiObj.selectedName].drawInfo.bufferInfo = triangleBufferInfo;
+    scene.children[uiObj.selectedName].drawInfo.vertexArray = triangleVAO;
+
+    //console.log(`ponto medio ${pontoMedio}`);
+    //console.log(`indices ${triangleIndices}`);
+    //console.log(`vertices ${triangleVertices}`);
   }
   
