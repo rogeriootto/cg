@@ -88,6 +88,9 @@ var uiObj = {
     x: 0,
     y: 0,
     z: 5,
+
+    lightColor: [0,0,0,1],
+    specularColor: [0,0,0,1],
   }
 
   var verticePosition = {
@@ -215,6 +218,8 @@ var uiObj = {
     lightfolder.add(luz, 'x', -10, 10);
     lightfolder.add(luz, 'y', -10, 10);
     lightfolder.add(luz, 'z', -15, 15);
+    lightfolder.addColor(luz, 'lightColor');
+    lightfolder.addColor(luz, 'specularColor');
 
     lightfolder.add(uiObj, 'shininess', 0, 500);
 

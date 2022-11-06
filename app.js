@@ -44,6 +44,8 @@ in vec3 v_surfaceToView;
 
 uniform vec4 u_color;
 uniform float u_shininess;
+uniform vec3 u_lightColor;
+uniform vec3 u_specularColor;
 
 out vec4 outColor;
 
@@ -63,8 +65,8 @@ void main() {
 
   outColor = u_color;
 
-  outColor.rgb *= light;
-  outColor.rgb += specular;
+  outColor.rgb *= light * u_lightColor;
+  outColor.rgb += specular * u_specularColor;
 }
 `;
 
@@ -488,20 +490,36 @@ function main() {
 
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
+
     var colorNormalized = [];
     for(let i=0; i<uiObj.color.length - 1; i++) {
       colorNormalized.push(uiObj.color[i]/255);
     }
     colorNormalized.push(1);
 
+    var lightColorNormalized = [];
+    for(let i=0; i<luz.lightColor.length - 1; i++) {
+      lightColorNormalized.push(luz.lightColor[i]/255);
+    }
+
+    var specularColorNormalized = [];
+    for(let i=0; i<luz.specularColor.length - 1; i++) {
+      specularColorNormalized.push(luz.specularColor[i]/255);
+    }
+
+
     // Compute all the matrices for rendering
     objects.forEach(function (object) {
       
+      object.drawInfo.uniforms.u_lightColor = lightColorNormalized;
+
+      object.drawInfo.uniforms.u_specularColor = specularColorNormalized; 
+
       object.drawInfo.uniforms.u_matrix = m4.multiply(
         viewProjectionMatrix,
         object.worldMatrix
       );
-      
+        
       object.drawInfo.uniforms.u_lightWorldPosition = [luz.x, luz.y, luz.z];
 
       object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
