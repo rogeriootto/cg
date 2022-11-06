@@ -3,19 +3,32 @@
 var vs = `#version 300 es
 
 in vec4 a_position;
-in vec4 a_color;
+in vec3 a_normal;
+
+uniform vec3 u_lightWorldPosition;
+uniform vec3 u_viewWorldPosition;
 
 uniform mat4 u_matrix;
+uniform mat4 u_world;
+uniform mat4 u_worldInverseTranspose;
 
-out vec4 v_color;
+out vec3 v_normal;
+
+out vec3 v_surfaceToLight;
+out vec3 v_surfaceToView;
 
 void main() {
-
   // Multiply the position by the matrix.
   gl_Position = u_matrix * a_position;
 
   // Pass the color to the fragment shader.
-  v_color = a_color;
+  v_normal = mat3(u_worldInverseTranspose) * a_normal;
+
+  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+
+  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+
+  v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
 }
 `;
 
@@ -24,79 +37,196 @@ var fs = `#version 300 es
 precision highp float;
 
 // Passed in from the vertex shader.
-in vec4 v_color;
 
-uniform vec4 u_colorMult;
-uniform vec4 u_colorOffset;
+in vec3 v_normal;
+in vec3 v_surfaceToLight;
+in vec3 v_surfaceToView;
+
+uniform vec4 u_color;
+uniform float u_shininess;
 
 out vec4 outColor;
 
 void main() {
-   outColor = v_color * u_colorMult + u_colorOffset;
+  vec3 normal = normalize(v_normal);
+
+  vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+  vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+  vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+
+  float light = dot(normal, surfaceToLightDirection);
+  float specular = 0.0;
+
+  if (light > 0.0) {
+    specular = pow(dot(normal, halfVector), u_shininess);
+  }
+
+  outColor = u_color;
+
+  outColor.rgb *= light;
+  outColor.rgb += specular;
 }
 `;
 
-const degToRad = (d) => (d * Math.PI) / 180;
+//wireframe
+var vsw = `
+#version 300 es
 
-const radToDeg = (r) => (r * 180) / Math.PI;
+in vec3 a_barycentric;
+in vec4 a_position;
+in vec3 a_normal;
 
-var config = {
-  rotate: degToRad(20),
-  x: 0,
-  y: 0,
-  rotation: 0,
-  camera_x: 4,
-  addCaixa: function () {
-    countC++;
+uniform vec3 u_lightWorldPosition;
+uniform vec3 u_viewWorldPosition;
 
-    objeto.children.push({
-      name: `cubo${countC}`,
-      translation: [0, countC, 0],
-    });
+uniform mat4 u_matrix;
+uniform mat4 u_world;
+uniform mat4 u_worldInverseTranspose;
 
-    objectsToDraw = [];
-    objects = [];
-    nodeInfosByName = {};
-    scene = makeNode(objeto);
-  },
-  triangulo: 0,
-  criarVertice: function () {},
-  time: 0.0,
-  n_cubos: 1,
-};
+out vec3 vbc;
+out vec3 v_normal;
 
-const loadGUI = () => {
-  const gui = new dat.GUI();
-  gui.add(config, "rotate", 0, 20, 0.5);
-  gui.add(config, "x", -150, 150, 5);
-  gui.add(config, "y", -100, 100, 5);
-  gui.add(config, "rotation", -1000, 1000, 10);
-  gui.add(config, "addCaixa");
-  gui.add(config, "camera_x", 0, 20, 0.5);
-  gui.add(config, "triangulo", 0, 20, 0.5);
-  gui.add(config, "criarVertice");
-  gui
-    .add(config, "time", 0, 100)
-    .listen()
-    .onChange(function () {
-      config.rotate = config.time + 1;
+out vec3 v_surfaceToLight;
+out vec3 v_surfaceToView;
 
-      //config.updateDisplay();
-    });
-  var n_cubos = gui.add(config, "n_cubos", 1, countC).listen();
-  n_cubos.onChange(function () {
-    n_cubos = countC;
-    gui.updateDisplay();
-  });
-};
+void main() {
+  // Multiply the position by the matrix.
+  vbc = a_barycentric;
+  gl_Position = u_matrix * a_position;
 
-var TRS = function () {
+  // Pass the color to the fragment shader.
+  v_normal = mat3(u_worldInverseTranspose) * a_normal;
+
+  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+
+  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+
+  v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
+} 
+`;
+
+var fsw = `
+#version 300 es
+
+precision highp float;
+
+in vec3 vbc;
+
+// Passed in from the vertex shader.
+
+in vec3 v_normal;
+in vec3 v_surfaceToLight;
+in vec3 v_surfaceToView;
+
+uniform vec4 u_color;
+uniform float u_shininess;
+
+out vec4 outColor;
+
+void main() {
+  vec3 normal = normalize(v_normal);
+
+  vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+  vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+  vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+
+  float light = dot(v_normal, surfaceToLightDirection);
+  float specular = 0.0;
+
+  if(vbc.x < 0.03 || vbc.y < 0.03 || vbc.z < 0.03) {
+    outColor = vec4(0.0, 0.0, 0.0, 1.0);
+  } 
+  else {
+    outColor = vec4(0.0, 0.0, 0.0, 0);
+  }
+}
+`;
+
+//textura
+var vst = `
+#version 300 es
+in vec4 a_position;
+in vec3 a_normal;
+in vec2 a_texcoord;
+ 
+uniform vec3 u_lightWorldPosition;
+uniform vec3 u_viewWorldPosition;
+
+uniform mat4 u_matrix;
+uniform mat4 u_world;
+uniform mat4 u_worldInverseTranspose;
+
+out vec3 v_normal;
+
+out vec3 v_surfaceToLight;
+out vec3 v_surfaceToView;
+ 
+// a varying to pass the texture coordinates to the fragment shader
+out vec2 v_texcoord;
+ 
+void main() {
+  // Multiply the position by the matrix.
+  gl_Position = u_matrix * a_position;
+ 
+  // Pass the texcoord to the fragment shader.
+  v_texcoord = a_texcoord;
+
+  // Pass the color to the fragment shader.
+  v_normal = mat3(u_worldInverseTranspose) * a_normal;
+
+  vec3 surfaceWorldPosition = (u_world * a_position).xyz;
+
+  v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition;
+
+  v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
+}
+`;
+
+var fst = `
+#version 300 es
+precision highp float;
+ 
+// Passed in from the vertex shader.
+in vec2 v_texcoord;
+in vec3 v_normal;
+in vec3 v_surfaceToLight;
+in vec3 v_surfaceToView;
+
+// The texture.
+uniform sampler2D u_texture;
+uniform float u_shininess;
+ 
+out vec4 outColor;
+ 
+void main() {
+   
+  vec3 normal = normalize(v_normal);
+
+  vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+  vec3 surfaceToViewDirection = normalize(v_surfaceToView);
+  vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
+
+  float light = dot(v_normal, surfaceToLightDirection);
+  float specular = 0.0;
+
+  if (light > 0.0) {
+    specular = pow(dot(normal, halfVector), u_shininess);
+  }
+
+  outColor = texture(u_texture, v_texcoord);
+
+  outColor.rgb *= light;
+  outColor.rgb += specular;
+} 
+`;
+
+var TRS = function() {
   this.translation = [0, 0, 0];
   this.rotation = [0, 0, 0];
   this.scale = [1, 1, 1];
 };
 
-TRS.prototype.getMatrix = function (dst) {
+TRS.prototype.getMatrix = function(dst) {
   dst = dst || new Float32Array(16);
   var t = this.translation;
   var r = this.rotation;
@@ -155,21 +285,46 @@ Node.prototype.updateWorldMatrix = function (matrix) {
   });
 };
 
+var then = 0;
+
+var texture;
+
 var cubeVAO;
 var cubeBufferInfo;
+var pyramidBufferInfo;
+var pyraVAO;
+var amongusVAO;
+var amongusBufferInfo;
+var triangleVAO;
+var triangleBufferInfo;
+
 var objectsToDraw = [];
 var objects = [];
 var nodeInfosByName = {};
 var scene;
 var objeto = {};
-var countF = 0;
-var countC = 0;
 var programInfo;
+var programInfoWireframe;
+var programInfoTexture;
+var gl;
 
 //CAMERA VARIABLES
-var cameraPosition;
-var target;
-var up;
+var cameras = [{
+  cameraPosition: [0,0,4],
+  target: [0,0,0],
+  up: [0, 1, 0],
+},
+{
+  cameraPosition: [3,-2,4],
+  target: [0,0,0],
+  up: [0, 1, 0],
+},
+{
+  cameraPosition: [-2,1,4],
+  target: [0,0,0],
+  up: [0, 1, 0],
+}
+];
 
 function makeNode(nodeDescription) {
   var trs = new TRS();
@@ -182,12 +337,11 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
     node.drawInfo = {
       uniforms: {
-        u_colorOffset: [0.2, 0.2, 0.7, 0],
-        u_colorMult: [0.4, 0.1, 0.4, 1],
+        //u_color: [0.2, 1, 0.2, 1],
       },
       programInfo: programInfo,
-      bufferInfo: cubeBufferInfo,
-      vertexArray: cubeVAO,
+      bufferInfo: nodeDescription.bufferInfo,
+      vertexArray: nodeDescription.vao,
     };
     objectsToDraw.push(node.drawInfo);
     objects.push(node);
@@ -201,103 +355,74 @@ function makeNode(nodeDescription) {
 function makeNodes(nodeDescriptions) {
   return nodeDescriptions ? nodeDescriptions.map(makeNode) : [];
 }
+
+const calculateBarycentric = (length) => {
+  const n = length / 6;
+  const barycentric = [];
+  for (let i = 0; i < n; i++) barycentric.push(1, 0, 0, 0, 1, 0, 0, 0, 1);
+  return barycentric;
+};
+
 function main() {
   // Get A WebGL context
   /** @type {HTMLCanvasElement} */
   var canvas = document.querySelector("#canvas");
-  var gl = canvas.getContext("webgl2");
+  gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
   }
 
-  loadGUI(gl);
+  //Calcula a normal dos objetos para inicialização:
+  arrays_cube.normal = calculateNormal(arrays_cube.position, arrays_cube.indices);
+  arrays_cube.barycentric = calculateBarycentric(arrays_cube.position.length);
+  arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+  arrays_pyramid.barycentric = calculateBarycentric(arrays_pyramid.position.length);
+
+  triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
+  triangleData.barycentric = calculateBarycentric(triangleData.position.length);
 
   // Tell the twgl to match position with a_position, n
   // normal with a_normal etc..
   twgl.setAttributePrefix("a_");
-  var indices = new Uint16Array([
-    0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14,
-    15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23,
-  ]);
   //cubeBufferInfo = flattenedPrimitives.createCubeBufferInfo(gl, 1);
-  var arrays_pyramid = {
-    position: new Float32Array([
-      0, 1, 0,
 
-      -1, -1, 1,
-
-      1, -1, 1,
-
-      0, 1, 0,
-
-      1, -1, 1,
-
-      1, -1, -1,
-
-      0, 1, 0,
-
-      1, -1, -1,
-
-      -1, -1, -1,
-
-      0, 1, 0,
-
-      -1, -1, -1,
-
-      -1, -1, 1,
-    ]),
-
-    // texcoord: new Float32Array([
-    //   1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1,
-    //   1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1,
-    //   0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 1, 1, 0, 1, 1,
-    //   1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0,
-    //   0, 1, 1,
-    // ]),
-    indices: new Uint16Array([
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 8, 4, 1, 8, 5, 2,
-    ]),
-    normal: new Float32Array([
-      1, -1, 1,
-
-      1, -1, 1,
-
-      1, 1, 1,
-
-      -1, 1, 1,
-
-      -1, -1, -1,
-
-      -1, 1, -1,
-    ]),
-  };
-
-  var arrays_cube = {
-    // vertex positions for a cube
-    position: new Float32Array([
-      1, 1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1, 1, -1, -1, -1, -1,
-      -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1,
-      1, -1, 1, -1, -1, 1, 1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1,
-      1, -1, 1, -1, -1, -1, -1, -1,
-    ]),
-    // vertex normals for a cube
-    normal: new Float32Array([
-      1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
-      0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0,
-      -1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
-      0, 0, -1,
-    ]),
-    indices: new Uint16Array([
-      0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12,
-      14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23,
-    ]),
-  };
-  cubeBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
-
+  cubeBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
+  pyramidBufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+  triangleBufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
+  
   // setup GLSL program
+  
   programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+  programInfoWireframe = twgl.createProgramInfo(gl, [vsw, fsw]);
+  programInfoTexture = twgl.createProgramInfo(gl, [vst, fst]);
 
   cubeVAO = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+  pyraVAO = twgl.createVAOFromBufferInfo(gl, programInfo, pyramidBufferInfo);
+  triangleVAO = twgl.createVAOFromBufferInfo(gl, programInfo, triangleBufferInfo);
+
+  texture = twgl.createTextures(gl, {clover: {src: "texture.png"}});
+
+  objectsToDraw = [];
+  objects = [];
+  nodeInfosByName = {};
+    
+  if(gui == null) {
+    createGUI();
+  }
+  
+  // Let's make all the nodes
+  objeto = {
+    name: "scene",
+    translation: [0,0,0],
+    rotation: [0,0,0],
+    scale: [0,0,0],
+    draw: false,
+    children: [] 
+  };
+
+  //createObj("pyramid");
+  
+  scene = makeNode(objeto);
 
   function degToRad(d) {
     return (d * Math.PI) / 180;
@@ -305,65 +430,92 @@ function main() {
 
   var fieldOfViewRadians = degToRad(60);
 
-  objectsToDraw = [];
-  objects = [];
-  nodeInfosByName = {};
-
-  // Let's make all the nodes
-  objeto = {
-    name: "cubo0",
-    translation: [0, 0, 0],
-    children: [],
-  };
-
-  scene = makeNode(objeto);
-
   requestAnimationFrame(drawScene);
 
   // Draw the scene.
-  function drawScene(time) {
-    time *= 0.001;
-
+  function drawScene(now) {
+    if(gui == null) {
+      createGUI();
+    }
+   
+   
     twgl.resizeCanvasToDisplaySize(gl.canvas);
 
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    gl.enable(gl.CULL_FACE);
+    gl.disable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
 
     // Compute the projection matrix
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 200);
+    var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 2000); //FOV, aspectRatio, NearPlane, FarPlane
+
+    cameras[uiCamera.selectedCamera].cameraPosition = [uiCamera.x, uiCamera.y, uiCamera.z];
+    cameras[uiCamera.selectedCamera].target = [uiCamera.x, uiCamera.ty, uiCamera.z - 10];
 
     // Compute the camera's matrix using look at.
-    cameraPosition = [config.camera_x, 3.5, 10];
-    target = [0, 3.5, 0];
-    up = [0, 1, 0];
-    var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+    var cameraMatrix = m4.lookAt(cameras[uiCamera.selectedCamera].cameraPosition, cameras[uiCamera.selectedCamera].target, cameras[uiCamera.selectedCamera].up);
 
     // Make a view matrix from the camera matrix.
     var viewMatrix = m4.inverse(cameraMatrix);
-
+    
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
+    
+    var fRotationRadians = degToRad(uiObj.rotation.y);
 
-    var adjust;
-    var speed = 3;
-    var c = time * speed;
+    if(uiObj.isObjectSelected) {
+      if(!uiObj.isAnimationPlaying){
+        nodeInfosByName[uiObj.selectedName].trs.rotation = [uiObj.rotation.x, uiObj.rotation.y, uiObj.rotation.z];
+      }
+      nodeInfosByName[uiObj.selectedName].trs.translation = [uiObj.translation.x, uiObj.translation.y, uiObj.translation.z];
+      nodeInfosByName[uiObj.selectedName].trs.scale = [uiObj.scale.x, uiObj.scale.y, uiObj.scale.z];
 
-    adjust = degToRad(time * config.rotation);
-    nodeInfosByName["cubo0"].trs.rotation[0] = adjust;
+      if(uiObj.isAnimationPlaying) { //Animação
+        now *= 0.001;
+        //console.log(`now ${now}, then ${then}`);
+        var deltaTime = now - then;
+        //console.log(deltaTime);
+        then = now;
+        nodeInfosByName[uiObj.selectedName].trs.rotation[1] += (deltaTime * uiObj.animationSpeed);
+      }
+      
+    }
+
+    if(uiObj.destruction) {
+      createVertice(0);
+    }
+
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
+    var colorNormalized = [];
+    for(let i=0; i<uiObj.color.length - 1; i++) {
+      colorNormalized.push(uiObj.color[i]/255);
+    }
+    colorNormalized.push(1);
 
     // Compute all the matrices for rendering
     objects.forEach(function (object) {
+      
       object.drawInfo.uniforms.u_matrix = m4.multiply(
         viewProjectionMatrix,
         object.worldMatrix
       );
+      
+      object.drawInfo.uniforms.u_lightWorldPosition = [luz.x, luz.y, luz.z];
+
+      object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
+
+      object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(object.worldMatrix));
+      
+      object.drawInfo.uniforms.u_viewWorldPosition = cameras[uiCamera.selectedCamera].cameraPosition;
+
+      object.drawInfo.uniforms.u_shininess = uiObj.shininess;
+
+      object.drawInfo.uniforms.u_color= colorNormalized;
     });
 
+    
     // ------ Draw the objects --------
 
     twgl.drawObjectList(gl, objectsToDraw);

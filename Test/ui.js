@@ -54,7 +54,20 @@ var uiObj = {
 
   ['Create vertice']: function() {
     createVertice(0);
-  }
+  },
+
+  ['Move X']: function() {
+    moveX();
+  },
+  
+  ['Move Y']: function() {
+    moveY();
+  },
+
+  ['Move Z']: function() {
+    moveZ();
+  },
+
 };
 
   var uiCamera = {
@@ -210,7 +223,7 @@ var uiObj = {
     var verticeFolder = geometryFolder.addFolder('Vertice Editor')
     uiObj.verticePositionArray = [];
 
-    for(let i=0; i < arrays_pyramid.position.length; i+=3) {
+    for(let i=0; i < triangleData.position.length; i+=3) {
       uiObj.verticePositionArray.push(i);
     }
 
@@ -220,32 +233,32 @@ var uiObj = {
 
     verticeFolder.add(verticePosition, 'x', -10, 10).onChange(event => {
 
-      arrays_pyramid.position[uiObj.selectedVertice] = verticePosition.x;
+      triangleData.position[uiObj.selectedVertice] = verticePosition.x;
 
-      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+      triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
 
-      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
       scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
 
     });
 
     verticeFolder.add(verticePosition, 'y', -10, 10).onChange(event => {
-      arrays_pyramid.position[uiObj.selectedVertice + 1] = verticePosition.y;
+      triangleData.position[uiObj.selectedVertice + 1] = verticePosition.y;
 
-      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+      triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
 
-      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
       scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
 
     });
 
     verticeFolder.add(verticePosition, 'z', -10, 10).onChange(event => {
 
-      arrays_pyramid.position[uiObj.selectedVertice + 2] = verticePosition.z;
+      triangleData.position[uiObj.selectedVertice + 2] = verticePosition.z;
 
-      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+      triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
 
-      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
       scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
 
     });
@@ -256,7 +269,7 @@ var uiObj = {
     //Mover Triangulo
     var indiceFolder = geometryFolder.addFolder('Triangle Editor')
 
-    for(let i=0; i < arrays_pyramid.indices.length; i+=3) {
+    for(let i=0; i < triangleData.indices.length; i+=3) {
       uiObj.indicePositionArray.push(i);
     }
 
@@ -264,16 +277,44 @@ var uiObj = {
       uiObj.selectedIndice = parseInt(event);
     });
 
-    indiceFolder.add(trianglePosition, 'x', -10, 10).onChange(event => {
+    indiceFolder.add(trianglePosition, 'x', -10, 10);
 
-      arrays_pyramid.position[uiObj.selectedIndice] = trianglePosition.x;
-      arrays_pyramid.position[uiObj.selectedIndice + 3] = trianglePosition.x;
-      arrays_pyramid.position[uiObj.selectedIndice + 6] = trianglePosition.x;
+    indiceFolder.add(trianglePosition, 'y', -10, 10);
 
-      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
-      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
-      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+    indiceFolder.add(trianglePosition, 'z', -10, 10);
 
-    });
+    indiceFolder.add(uiObj, 'Move X');
+    indiceFolder.add(uiObj, 'Move Y');
+    indiceFolder.add(uiObj, 'Move Z');
     
+  }
+
+  function moveX() {
+    triangleData.position[uiObj.selectedIndice * 3] += trianglePosition.x;
+    triangleData.position[uiObj.selectedIndice * 3 + 3] += trianglePosition.x;
+    triangleData.position[uiObj.selectedIndice * 3 + 6] += trianglePosition.x;
+
+    triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
+    scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
+    scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+  };
+
+  function moveY() {
+    triangleData.position[uiObj.selectedIndice * 3 + 1] += trianglePosition.y;
+    triangleData.position[uiObj.selectedIndice * 3 + 4] += trianglePosition.y;
+    triangleData.position[uiObj.selectedIndice * 3 + 7] += trianglePosition.y;
+
+    triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+  }
+
+  function moveZ() {
+    triangleData.position[uiObj.selectedIndice * 3 + 2] += trianglePosition.z;
+    triangleData.position[uiObj.selectedIndice * 3 + 5] += trianglePosition.z;
+    triangleData.position[uiObj.selectedIndice * 3 + 8] += trianglePosition.z;
+
+    triangleData.normal = calculateNormal(triangleData.position, triangleData.indices);
+    scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, triangleData);
+    scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
   }
