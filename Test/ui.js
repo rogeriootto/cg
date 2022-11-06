@@ -10,6 +10,8 @@ var uiObj = {
   isTextureOn: false,
   destruction: false,
   objArray: [],
+  verticePositionArray: [],
+  selectedVertice: 0,
     
   animationSpeed: 2.5,
 
@@ -70,7 +72,7 @@ var uiObj = {
     z: 5,
   }
 
-  var teste = {
+  var verticePosition = {
     x: 0,
     y: 0,
     z: 0,
@@ -179,19 +181,56 @@ var uiObj = {
 
     lightfolder.add(uiObj, 'shininess', 0, 500);
 
-    gui.add(teste, 'x', -10, 10).onChange(event => {
 
-      arrays_cube.position[uiObj.selectedName] = teste.x;
+    
+    //MOVER VERTICE
 
-      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
-      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+    var verticeFolder = gui.addFolder('Vertice Editor')
+    uiObj.verticePositionArray = [];
 
-      //objectsToDraw[uiObj.selectedName].bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_cube);
-      //objectsToDraw[uiObj.selectedName].vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, cubeBufferInfo);
+    for(let i=0; i < arrays_pyramid.position.length; i+=3) {
+      uiObj.verticePositionArray.push(i);
+    }
 
-      //console.log()
+    verticeFolder.add(uiObj, 'verticePositionArray', uiObj.verticePositionArray).onChange(event => {
+      uiObj.selectedVertice = parseInt(event);
     });
 
-    gui.add(uiObj, 'Create vertice');
+    verticeFolder.add(verticePosition, 'x', -10, 10).onChange(event => {
+
+      arrays_pyramid.position[uiObj.selectedVertice] = verticePosition.x;
+
+      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+
+    });
+
+    verticeFolder.add(verticePosition, 'y', -10, 10).onChange(event => {
+      arrays_pyramid.position[uiObj.selectedVertice + 1] = verticePosition.y;
+
+      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+
+    });
+
+    verticeFolder.add(verticePosition, 'z', -10, 10).onChange(event => {
+
+      arrays_pyramid.position[uiObj.selectedVertice + 2] = verticePosition.z;
+
+      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+
+    });
+
+    verticeFolder.add(uiObj, 'Create vertice');
+
+
+    //Mover Triangulo
     
   }

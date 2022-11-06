@@ -54,7 +54,7 @@ void main() {
   vec3 surfaceToViewDirection = normalize(v_surfaceToView);
   vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
 
-  float light = dot(v_normal, surfaceToLightDirection);
+  float light = dot(normal, surfaceToLightDirection);
   float specular = 0.0;
 
   if (light > 0.0) {
@@ -324,7 +324,7 @@ function makeNode(nodeDescription) {
   if (nodeDescription.draw !== false) {
     node.drawInfo = {
       uniforms: {
-        u_color: [0.2, 1, 0.2, 1],
+        //u_color: [0.2, 1, 0.2, 1],
       },
       programInfo: programInfo,
       bufferInfo: nodeDescription.bufferInfo,
@@ -473,11 +473,15 @@ function main() {
 
     if(uiObj.destruction) {
       createVertice(0);
-      createVertice(1);
     }
 
     // Update all world matrices in the scene graph
     scene.updateWorldMatrix();
+    var colorNormalized = [];
+    for(let i=0; i<uiObj.color.length - 1; i++) {
+      colorNormalized.push(uiObj.color[i]/255);
+    }
+    colorNormalized.push(1);
 
     // Compute all the matrices for rendering
     objects.forEach(function (object) {
@@ -496,6 +500,8 @@ function main() {
       object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
 
       object.drawInfo.uniforms.u_shininess = uiObj.shininess;
+
+      object.drawInfo.uniforms.u_color= colorNormalized;
     });
 
     
