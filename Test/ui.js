@@ -12,7 +12,9 @@ var uiObj = {
   objArray: [],
   verticePositionArray: [],
   selectedVertice: 0,
-    
+  indicePositionArray: [],
+  selectedIndice: 0,
+
   animationSpeed: 2.5,
 
   translation: {
@@ -63,7 +65,10 @@ var uiObj = {
     //target
     tx: 0.0,
     ty: 0.0,
-    tz: 0.0
+    tz: 0.0,
+
+    camerasToSelect: [0,1,2],
+    selectedCamera: 0,
   }
 
   var luz = {
@@ -73,6 +78,12 @@ var uiObj = {
   }
 
   var verticePosition = {
+    x: 0,
+    y: 0,
+    z: 0,
+  }
+
+  var trianglePosition = {
     x: 0,
     y: 0,
     z: 0,
@@ -167,6 +178,19 @@ var uiObj = {
     geometryFolder.add(uiObj, 'animationSpeed', -5, 10);
 
     const cameraFolder = gui.addFolder('Camera');
+
+    cameraFolder.add(uiCamera, 'camerasToSelect', uiCamera.camerasToSelect).onChange(event => {
+      uiCamera.selectedCamera = parseInt(event);
+
+      uiCamera.x = cameras[uiCamera.selectedCamera].cameraPosition[0];
+      uiCamera.y = cameras[uiCamera.selectedCamera].cameraPosition[1];
+      uiCamera.z = cameras[uiCamera.selectedCamera].cameraPosition[2];
+
+      gui.destroy();
+      gui = null;
+
+    });
+
     cameraFolder.add(uiCamera, 'x', -10.0, 10.0);
     cameraFolder.add(uiCamera, 'y', -10.0, 10.0);
     cameraFolder.add(uiCamera, 'z', -10.0, 10.0);
@@ -181,11 +205,9 @@ var uiObj = {
 
     lightfolder.add(uiObj, 'shininess', 0, 500);
 
-
-    
     //MOVER VERTICE
 
-    var verticeFolder = gui.addFolder('Vertice Editor')
+    var verticeFolder = geometryFolder.addFolder('Vertice Editor')
     uiObj.verticePositionArray = [];
 
     for(let i=0; i < arrays_pyramid.position.length; i+=3) {
@@ -232,5 +254,26 @@ var uiObj = {
 
 
     //Mover Triangulo
+    var indiceFolder = geometryFolder.addFolder('Triangle Editor')
+
+    for(let i=0; i < arrays_pyramid.indices.length; i+=3) {
+      uiObj.indicePositionArray.push(i);
+    }
+
+    indiceFolder.add(uiObj, 'indicePositionArray', uiObj.indicePositionArray).onChange(event => {
+      uiObj.selectedIndice = parseInt(event);
+    });
+
+    indiceFolder.add(trianglePosition, 'x', -10, 10).onChange(event => {
+
+      arrays_pyramid.position[uiObj.selectedIndice] = trianglePosition.x;
+      arrays_pyramid.position[uiObj.selectedIndice + 3] = trianglePosition.x;
+      arrays_pyramid.position[uiObj.selectedIndice + 6] = trianglePosition.x;
+
+      arrays_pyramid.normal = calculateNormal(arrays_pyramid.position, arrays_pyramid.indices);
+      scene.children[uiObj.selectedName].drawInfo.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays_pyramid);
+      scene.children[uiObj.selectedName].drawInfo.vertexArray = twgl.createVAOFromBufferInfo(gl, programInfo, scene.children[uiObj.selectedName].drawInfo.bufferInfo);
+
+    });
     
   }

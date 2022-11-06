@@ -309,9 +309,22 @@ var programInfoTexture;
 var gl;
 
 //CAMERA VARIABLES
-var cameraPosition;
-var target;
-var up;
+var cameras = [{
+  cameraPosition: [0,0,4],
+  target: [0,0,0],
+  up: [0, 1, 0],
+},
+{
+  cameraPosition: [3,-2,4],
+  target: [0,0,0],
+  up: [0, 1, 0],
+},
+{
+  cameraPosition: [-2,1,4],
+  target: [0,0,0],
+  up: [0, 1, 0],
+}
+];
 
 function makeNode(nodeDescription) {
   var trs = new TRS();
@@ -440,11 +453,11 @@ function main() {
     var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, 1, 2000); //FOV, aspectRatio, NearPlane, FarPlane
 
+    cameras[uiCamera.selectedCamera].cameraPosition = [uiCamera.x, uiCamera.y, uiCamera.z];
+    cameras[uiCamera.selectedCamera].target = [uiCamera.x, uiCamera.ty, uiCamera.z - 10];
+
     // Compute the camera's matrix using look at.
-    cameraPosition = [uiCamera.x, uiCamera.y, uiCamera.z];
-    target = [uiCamera.x, uiCamera.ty, uiCamera.z - 10];
-    up = [0, 1, 0];
-    var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+    var cameraMatrix = m4.lookAt(cameras[uiCamera.selectedCamera].cameraPosition, cameras[uiCamera.selectedCamera].target, cameras[uiCamera.selectedCamera].up);
 
     // Make a view matrix from the camera matrix.
     var viewMatrix = m4.inverse(cameraMatrix);
@@ -490,14 +503,14 @@ function main() {
         viewProjectionMatrix,
         object.worldMatrix
       );
-
+      
       object.drawInfo.uniforms.u_lightWorldPosition = [luz.x, luz.y, luz.z];
 
       object.drawInfo.uniforms.u_world = m4.multiply(object.worldMatrix, m4.yRotation(fRotationRadians));
 
       object.drawInfo.uniforms.u_worldInverseTranspose = m4.transpose(m4.inverse(object.worldMatrix));
       
-      object.drawInfo.uniforms.u_viewWorldPosition = cameraPosition;
+      object.drawInfo.uniforms.u_viewWorldPosition = cameras[uiCamera.selectedCamera].cameraPosition;
 
       object.drawInfo.uniforms.u_shininess = uiObj.shininess;
 
